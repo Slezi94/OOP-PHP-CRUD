@@ -1,0 +1,24 @@
+@media screen and (max-width: 760px){
+
+/* index oldal*/
+    .container{
+        max-width: 100%!important;
+    }
+
+    .index-table{
+        font-size: 13px;
+        margin: 0;
+        padding: 0;
+        font-weight: normal;
+    }
+
+    .index-table th{
+        font-weight: bold;
+        padding: 0;
+    }
+
+    .index-table a{
+        font-size: 13px!important;
+    }
+
+}
