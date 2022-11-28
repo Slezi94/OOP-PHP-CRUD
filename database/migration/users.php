@@ -13,7 +13,7 @@
         `billing_id` VARCHAR(255) NOT NULL,
         UNIQUE KEY `email_UNIQUE` (`email`),
         UNIQUE KEY `tax_number_UNIQUE` (`tax_number`),
-        FOREIGN KEY (shipping_id) REFERENCES shipping_address(id)
+        FOREIGN KEY (shipping_id) REFERENCES shipping_address(id),
         FOREIGN KEY (billing_id) REFERENCES billing_address(id)
         )";
 
