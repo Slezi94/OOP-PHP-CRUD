@@ -1,3 +1,4 @@
+
 <?php
     include 'connection.php';
 
@@ -14,6 +15,6 @@
         )";
 
         $connection->exec($createTable);
-    }else{
-        $connection->exec("USE `test_task_db`;");
-    }
+} else {
+    $connection->exec("USE `test_task_db`;");
+}

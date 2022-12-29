@@ -1,72 +1,26 @@
 <?php
-//Felhasználóhoz tartozó adatbázis műveletek, adatbázis kapcsolat és séma
     class CrudModel{
         private $id;
         private $fullName;
         private $email;
         private $taxNumber;
         private $password;
+        private $shippingAddress;
+        private$billingAddress;
         protected $connection;
 
-        public function __construct($id = 0, $fullName = '', $email = '', $taxNumber = '', $password = ''){
+        public function __construct($id = 0, $fullName = '', $email = '', $taxNumber = '', $password = '', $shippingAddress = '', $billingAddress = ''){
             $this->id = $id;
             $this->fullName = $fullName;
             $this->email = $email;
             $this->taxNumber = $taxNumber;
             $this->password = $password;
+            $this->shippingAddress = $shippingAddress;
+            $this->billingAddress = $billingAddress;
 
-            //Adatbázis kapcsolat
-            $this->connection  = new PDO("mysql:host=localhost;charset=utf8", "root", "", [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
-            
-            //Adatbázis séma
-            if(!$this->connection->query("SELECT COUNT(*) FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = 'test_task_db'")->fetchColumn()){
-                $createDB = <<<EOF
-                CREATE DATABASE `test_task_db` /*!40100 DEFAULT CHARACTER SET utf8 */;
-
-                USE `test_task_db`;
-
-                CREATE TABLE `users` (
-                `id` int(11) NOT NULL AUTO_INCREMENT,
-                `name` varchar(45) NOT NULL,
-                `email` varchar(45) NOT NULL,
-                `tax_number` varchar(11) DEFAULT NULL,
-                `password` varchar(255) NOT NULL,
-                PRIMARY KEY (`id`),
-                UNIQUE KEY `email_UNIQUE` (`email`),
-                UNIQUE KEY `tax_number_UNIQUE` (`tax_number`)
-                ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-                CREATE TABLE `shipping_address` (
-                `id` int(11) NOT NULL AUTO_INCREMENT,
-                `user_id` int(11) NOT NULL,
-                `shipping_address` varchar(45) NOT NULL,
-                PRIMARY KEY (`id`)
-                ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-                CREATE TABLE `billing_address` (
-                `id` int(11) NOT NULL AUTO_INCREMENT,
-                `user_id` int(11) NOT NULL,
-                `billing_address` varchar(45) NOT NULL,
-                PRIMARY KEY (`id`)
-                ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-                CREATE TABLE `audit` (
-                    `id` int(11) NOT NULL AUTO_INCREMENT,
-                    `user_id` int(11) NOT NULL,
-                    `log` varchar(45) NOT NULL,
-                    `timestamp` timestamp NOT NULL,
-                    PRIMARY KEY (`id`)
-                  ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-EOF;
-
-                $this->connection->exec($createDB);
-            }else{
-                $this->connection->exec("USE `test_task_db`;");
-            }
+            include('../database/connection.php');
         }
 
-//Setter, getter
         public function setId($id) {
             $this->id = $id;
         }
@@ -107,19 +61,38 @@ EOF;
             return $this->password;
         }
 
-//Felhasználó mentése adatbázisba
+        public function setShippingAddress($shippingAddress) {
+            $this->shippingAddress = $shippingAddress;
+        }
+
+        public function getShippingAddress(){
+                    return $this->shippingAddress;
+        }
+
+        public function setBillingAddress($billingAddress) {
+            $this->billingAddress = $billingAddress;
+        }
+
+        public function getBillingAddress(){
+            return $this->billingAddress;
+        }
+
+
         public function create(){
             try{
                 $insert = $this->connection->prepare("INSERT INTO users (name, email, tax_number, password)
                 VALUES (?,?,?,?)");
-                $insert->execute([$this->fullName, $this->email, $this->taxNumber == "" ? NULL : $this->taxNumber, password_hash($this->password, PASSWORD_BCRYPT)]);
+                $shippingInsert = $this->connection->prepare("INSERT INTO shipping_address (user_id, shipping_address) VALUES (lastInsertId(),?)");
+                $billingInsert = $this->connection->prepare("INSERT INTO billing_address (user_id, billing_address) VALUES (lastInsertId(),?)");
 
+                $insert->execute([$this->fullName, $this->email, $this->taxNumber == "" ? NULL : $this->taxNumber, password_hash($this->password, PASSWORD_BCRYPT)]);
+                $shippingInsert->execute([$this->shippingAddress]);
+                $billingInsert->execute([$this->shippingAddress]);
             }catch(PDOException $e){
                 return $e->getMessage();
             }
         }
 
-//Felhasználó lekérdezése
         public function read(){
             try{
                 $select = $this->connection->prepare("SELECT * FROM users");
